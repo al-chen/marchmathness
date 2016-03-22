@@ -27,20 +27,16 @@ def predict_submission(nn, scalerX, scalerY=None):
 					game_id = row[0]
 					season, t1_id, t2_id = game_id.split('_')
 					t1, t2 = id_to_team[t1_id], id_to_team[t2_id]
-					t1_features = featurize.get_team_features(t1_id, season, id_to_team, stats)
-					t2_features = featurize.get_team_features(t2_id, season, id_to_team, stats)
-					if not t1_features or not t2_features:
-						print season, t1, t2, 'no features available'
+
+					x1, x2 = featurize.get_matchup_features(season, t1_id, t2_id, "N", id_to_team, stats)
+					if not x1 or not x2:
+						print 'Could not get features', t1, t2
 						break
-					loc = [0,0,1]
-					x1 = t1_features + t2_features + loc
-					x2 = t2_features + t1_features + loc
 
 					x = []
 					x.append(x1)
 					x.append(x2)
 					x = scalerX.transform(x)
-
 					
 					x1, x2 = x
 					t1_activation, t2_activation = nn.activate(x1), nn.activate(x2)
@@ -60,7 +56,7 @@ def predict_submission(nn, scalerX, scalerY=None):
 					# writer_rs.writerow([t2 + ' ' + t1, str(t2_activation[0]), str(t1_activation[0])])
 
 if __name__ == "__main__":
-	nn_filename = '../data/saved_nn'
+	nn_filename = '../data/test_nn'
 	nnObject = open(nn_filename,'r')
 	nn = pickle.load(nnObject)
 
