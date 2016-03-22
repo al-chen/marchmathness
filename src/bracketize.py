@@ -15,9 +15,6 @@ def seeds_to_bracket(seeds, seed_to_team_id, id_to_team):
 			bracket.append(id_to_team[seed_to_team_id[seed]])
 	return bracket
 
-
-
-
 def greedy_predict(seeds, nn, scalerX, scalerY, chosen_season, id_to_team, stats, rounds=0, verbose=False):
 	if rounds == 0:
 		threshold = 1
@@ -81,66 +78,67 @@ def value_predict(seeds, nn, scalerX, scalerY, chosen_season, id_to_team, stats,
 	p = 0.0
 	d = {}
 	level = 1
-	history = []
+	history = [seeds]
 	while len(sd) > 1:
 		sd, p, d = dynamic_ev([], sd, p, level, nn, scalerX, scalerY, chosen_season, id_to_team, stats, rounds=0, dic=d)
 		level += 1
 		history.append(sd[:])
 	return history
 
-with open('../data/id_to_team.json') as f:
-	id_to_team = json.load(f)
+if __name__ == "__main__":
+	with open('../data/id_to_team.json') as f:
+		id_to_team = json.load(f)
 
-with open('../data/stats.json') as f:
-	stats = json.load(f)
+	with open('../data/stats.json') as f:
+		stats = json.load(f)
 
-nn_filename = '../data/saved_nn'
-nnObject = open(nn_filename,'r')
-nn = pickle.load(nnObject)
+	nn_filename = '../data/saved_nn'
+	nnObject = open(nn_filename,'r')
+	nn = pickle.load(nnObject)
 
-scalerXObject = open(nn_filename + '_scalerX','r')
-scalerX = pickle.load(scalerXObject)
+	scalerXObject = open(nn_filename + '_scalerX','r')
+	scalerX = pickle.load(scalerXObject)
 
-scalerYObject = open(nn_filename + '_scalerY','r')
-scalerY = pickle.load(scalerYObject)
+	scalerYObject = open(nn_filename + '_scalerY','r')
+	scalerY = pickle.load(scalerYObject)
 
-chosen_season = 2016
-seed_to_team_id = {}
-with open('../march-machine-learning-mania-2016-v2/TourneySeeds.csv') as csvfile:
-	reader = csv.reader(csvfile)
-	headers = next(reader)
-	for row in reader:
-		season, seed, team = row
-		if int(season) != chosen_season:
-			continue
-		seed_to_team_id[seed] = team
+	chosen_season = 2016
+	seed_to_team_id = {}
+	with open('../march-machine-learning-mania-2016-v2/TourneySeeds.csv') as csvfile:
+		reader = csv.reader(csvfile)
+		headers = next(reader)
+		for row in reader:
+			season, seed, team = row
+			if int(season) != chosen_season:
+				continue
+			seed_to_team_id[seed] = team
 
-regional_seeds = ['01', '16', '08', '09', '05', '12', '04', '13', '06', '11', '03', '14', '07', '10', '02', '15']
-seeds = regional_seeds * 4
-for i, char in zip(range(4), ['W', 'X', 'Y', 'Z']):
-	for j in range(16):
-		idx = i*16 + j
-		seeds[idx] = char + seeds[idx]
+	regional_seeds = ['01', '16', '08', '09', '05', '12', '04', '13', '06', '11', '03', '14', '07', '10', '02', '15']
+	seeds = regional_seeds * 4
+	for i, char in zip(range(4), ['W', 'X', 'Y', 'Z']):
+		for j in range(16):
+			idx = i*16 + j
+			seeds[idx] = char + seeds[idx]
 
-playin_seeds = []
-for seed in seed_to_team_id.keys():
-	if len(seed) > 3:
-		playin_seeds.append(seed)
-playin_seeds = sorted(playin_seeds)
+	playin_seeds = []
+	for seed in seed_to_team_id.keys():
+		if len(seed) > 3:
+			playin_seeds.append(seed)
+	playin_seeds = sorted(playin_seeds)
 
-playin_predictions = greedy_predict(playin_seeds, nn, scalerX, scalerY, chosen_season, id_to_team, stats, rounds=1)
-playin_winners = playin_predictions[-1]
-for pw in playin_winners:
-	playin_seed = pw[:-1]
-	seed_to_team_id[playin_seed] = seed_to_team_id[pw]
+	playin_predictions = greedy_predict(playin_seeds, nn, scalerX, scalerY, chosen_season, id_to_team, stats, rounds=1)
+	playin_winners = playin_predictions[-1]
+	for pw in playin_winners:
+		playin_seed = pw[:-1]
+		seed_to_team_id[playin_seed] = seed_to_team_id[pw]
 
 
-print 'Greedy Bracket'
-tournament = greedy_predict(seeds, nn, scalerX, scalerY, chosen_season, id_to_team, stats, rounds=0, verbose=False)
-for t in tournament:
-	print seeds_to_bracket(t, seed_to_team_id, id_to_team)
+	print 'Greedy Bracket'
+	tournament = greedy_predict(seeds, nn, scalerX, scalerY, chosen_season, id_to_team, stats, rounds=0, verbose=False)
+	for t in tournament:
+		print seeds_to_bracket(t, seed_to_team_id, id_to_team)
 
-print 'Value Bracket'
-tournament = value_predict(seeds, nn, scalerX, scalerY, chosen_season, id_to_team, stats, rounds=0)
-for t in tournament:
-	print seeds_to_bracket(t, seed_to_team_id, id_to_team)
+	print 'Value Bracket'
+	tournament = value_predict(seeds, nn, scalerX, scalerY, chosen_season, id_to_team, stats, rounds=0)
+	for t in tournament:
+		print seeds_to_bracket(t, seed_to_team_id, id_to_team)
