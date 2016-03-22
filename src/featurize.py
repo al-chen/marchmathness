@@ -2,10 +2,35 @@ import csv
 import numpy as np
 import json
 
+def get_matchup_features(season, t1_id, t2_id, t1_loc='N', id_to_team, stats):
+	t1, t2 = id_to_team[t1_id], id_to_team[t2_id]
+
+	t1_features = get_team_features(t1_id, season, id_to_team, stats)
+	t2_features = get_team_features(t2_id, season, id_to_team, stats)
+	if not t1_features or not t2_features:
+		# print season, t1, t2, 'no features available'
+		return None
+
+	t1_first = [0,0,0]
+	t2_first = [0,0,0]
+	if t1_loc == "N":
+		t1_first = [0,0,1]
+		t2_first = [0,0,1]
+	elif t1_loc == "H":
+		t1_first = [1,0,0]
+		t2_first = [0,1,0]
+	elif t1_loc == "A":
+		t1_first = [0,1,0]
+		t2_first = [1,0,0]
+
+	x1 = t1_features + t2_features + t1_first
+	x2 = t2_features + t1_features + t2_first
+	return x1, x2
+
 def get_team_features(team_id, season, id_to_team, stats):
 	assert str(team_id) in id_to_team
 	team = id_to_team[str(team_id)]
-	# Hardcode: Changed Middle Tenneessee St. to Middle Tennessee in kenpom.csv
+	# Hardcoded: Changed Middle Tenneessee St. to Middle Tennessee in kenpom.csv
 	if team not in stats or str(season) not in stats[team]:
 		return None
 	team_stats = stats[team][str(season)]
