@@ -53,6 +53,28 @@ def predict_submission(nn, scalerX, scalerY, readable_output, kaggle_output):
 					writer_ms.writerow([game_id, str(t1_activation[0])])
 					writer_rs.writerow([t1 + ' ' + t2, str(t1_activation[0]), str(t2_activation[0]), '', t2 + ' ' + t1, str(t2_activation[0]), str(t1_activation[0])])
 
+def predict_matchup(nn, scalerX, scalerY, season, t1_id, t2_id, t1_loc, id_to_team, stats):
+	x1, x2 = featurize.get_matchup_features(season, t1_id, t2_id, t1_loc, id_to_team, stats)
+	if not x1 or not x2:
+		print 'Could not get features', t1, t2
+		return None, None
+
+	x = []
+	x.append(x1)
+	x.append(x2)
+	x = scalerX.transform(x)
+	
+	x1, x2 = x
+	t1_activation, t2_activation = nn.activate(x1), nn.activate(x2)
+	if scalerY:
+		t1_activation, t2_activation = scalerY.inverse_transform(t1_activation), scalerY.inverse_transform(t2_activation)
+
+	sum_win_prob = t1_activation + t2_activation
+	t1_activation /= sum_win_prob
+	t2_activation /= sum_win_prob
+
+	return t1_activation, t2_activation
+
 if __name__ == "__main__":
 	nn_filename = '../data/saved_nn'
 	nnObject = open(nn_filename,'r')
