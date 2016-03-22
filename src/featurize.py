@@ -2,15 +2,16 @@ import csv
 import numpy as np
 import json
 
-def get_matchup_features(season, t1_id, t2_id, t1_loc='N', id_to_team, stats):
+def get_matchup_features(season, t1_id, t2_id, t1_loc, id_to_team, stats):
 	t1, t2 = id_to_team[t1_id], id_to_team[t2_id]
 
 	t1_features = get_team_features(t1_id, season, id_to_team, stats)
 	t2_features = get_team_features(t2_id, season, id_to_team, stats)
 	if not t1_features or not t2_features:
 		# print season, t1, t2, 'no features available'
-		return None
+		return None, None
 
+	#First team location features [Home, Away, Neutral] 
 	t1_first = [0,0,0]
 	t2_first = [0,0,0]
 	if t1_loc == "N":
@@ -73,26 +74,11 @@ def get_training_data(year_range=range(2002, 2017)):
 				mov = int(wscore) - int(lscore)
 				# print "{0}: {1} ({2}) beat {3} {4}-{5} (+{6})".format(season, id_to_team[wteam], wloc, id_to_team[lteam], wscore, lscore, mov)
 
-				wfeatures = get_team_features(wteam, season, id_to_team, stats)
-				lfeatures = get_team_features(lteam, season, id_to_team, stats)
-				if not wfeatures or not lfeatures:
+				x1, x2 = get_matchup_features(season, wteam, lteam, wloc, id_to_team, stats)
+				if not x1 or not x2:
 					continue
-
-				#First team location features [Home, Away, Neutral] 
-				wteam_first = [0,0,0]
-				lteam_first = [0,0,0]
-				if wloc == "H":
-					wteam_first = [1,0,0]
-					lteam_first = [0,1,0]
-				elif wloc == "A":
-					wteam_first = [0,1,0]
-					lteam_first = [1,0,0]
-				elif wloc == "N":
-					wteam_first = [0,0,1]
-					lteam_first = [0,0,1]
-
-				x.append(wfeatures+lfeatures+wteam_first)
-				x.append(lfeatures+wfeatures+lteam_first)
+				x.append(x1)
+				x.append(x2)
 
 				# margin of victory output
 				# norm_mov = (mov+20.0) / 40.0
