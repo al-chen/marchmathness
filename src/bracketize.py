@@ -15,6 +15,9 @@ def seeds_to_bracket(seeds, seed_to_team_id, id_to_team):
 			bracket.append(id_to_team[seed_to_team_id[seed]])
 	return bracket
 
+
+
+
 def greedy_predict(seeds, nn, scalerX, scalerY, chosen_season, id_to_team, stats, rounds=0, verbose=False):
 	if rounds == 0:
 		threshold = 1
@@ -25,6 +28,8 @@ def greedy_predict(seeds, nn, scalerX, scalerY, chosen_season, id_to_team, stats
 	while len(seeds) > threshold:
 		seeds_copy = seeds[:]
 		for i in range(0, len(seeds), 2):
+			if i+1 >= len(seeds): # odd number of seeds
+				continue
 			seed1, seed2 = seeds[i], seeds[i+1]
 			t1_id, t2_id = seed_to_team_id[seed1], seed_to_team_id[seed2]
 			t1, t2 = id_to_team[t1_id], id_to_team[t2_id]
@@ -41,7 +46,48 @@ def greedy_predict(seeds, nn, scalerX, scalerY, chosen_season, id_to_team, stats
 		seeds = seeds_copy
 		history.append(seeds)
 	return history
-	
+
+def dynamic_ev(seeds_done, seeds_todo, points, level, nn, scalerX, scalerY, chosen_season, id_to_team, stats, rounds=0, dic={}):
+	if len(seeds_todo) <= 1:
+		return seeds_done, points, dic
+
+	seed1, seed2 = seeds_todo[0], seeds_todo[1]
+	if (seed1, seed2) in dic:
+		t1_prob = dic[(seed1, seed2)]
+		t2_prob = 1.0 - t1_prob
+	elif (seed2, seed1) in dic:
+		t2_prob = dic[(seed2, seed1)]
+		t1_prob = 1.0 - t2_prob
+	else:
+		t1_id, t2_id = seed_to_team_id[seed1], seed_to_team_id[seed2]
+		t1, t2 = id_to_team[t1_id], id_to_team[t2_id]
+		t1_prob, t2_prob = predict.predict_matchup(nn, scalerX, scalerY, str(chosen_season), t1_id, t2_id, "N", id_to_team, stats)
+		t1_prob, t2_prob = t1_prob[0], t2_prob[0]
+		dic[(seed1,seed2)] = t1_prob
+		dic[(seed2,seed1)] = t2_prob
+
+	seeds_todo.pop(0)
+	seeds_todo.pop(0)
+
+	correct_pts = 10.0 * pow(2,level-1)
+	sd1, p1, dic = dynamic_ev(seeds_done + [seed1], seeds_todo, points + correct_pts*t1_prob, level, nn, scalerX, scalerY, chosen_season, id_to_team, stats, rounds=0, dic=dic)
+	sd2, p2, dic = dynamic_ev(seeds_done + [seed2], seeds_todo, points + correct_pts*t2_prob, level, nn, scalerX, scalerY, chosen_season, id_to_team, stats, rounds=0, dic=dic)
+	if p1 >= p2:
+		return sd1, p1, dic
+	return sd2, p2, dic
+
+def value_predict(seeds, nn, scalerX, scalerY, chosen_season, id_to_team, stats, rounds=0):
+	sd = seeds
+	p = 0.0
+	d = {}
+	level = 1
+	history = []
+	while len(sd) > 1:
+		sd, p, d = dynamic_ev([], sd, p, level, nn, scalerX, scalerY, chosen_season, id_to_team, stats, rounds=0, dic=d)
+		level += 1
+		history.append(sd[:])
+	return history
+
 with open('../data/id_to_team.json') as f:
 	id_to_team = json.load(f)
 
@@ -88,7 +134,13 @@ for pw in playin_winners:
 	playin_seed = pw[:-1]
 	seed_to_team_id[playin_seed] = seed_to_team_id[pw]
 
-tournament = greedy_predict(seeds, nn, scalerX, scalerY, chosen_season, id_to_team, stats, rounds=0, verbose=True)
+
+print 'Greedy Bracket'
+tournament = greedy_predict(seeds, nn, scalerX, scalerY, chosen_season, id_to_team, stats, rounds=0, verbose=False)
 for t in tournament:
 	print seeds_to_bracket(t, seed_to_team_id, id_to_team)
 
+print 'Value Bracket'
+tournament = value_predict(seeds, nn, scalerX, scalerY, chosen_season, id_to_team, stats, rounds=0)
+for t in tournament:
+	print seeds_to_bracket(t, seed_to_team_id, id_to_team)
