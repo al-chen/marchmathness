@@ -78,7 +78,7 @@ def value_predict(seeds, nn, scalerX, scalerY, chosen_season, id_to_team, stats,
 	p = 0.0
 	d = {}
 	level = 1
-	history = [seeds]
+	history = [seeds[:]]
 	while len(sd) > 1:
 		sd, p, d = dynamic_ev([], sd, p, level, nn, scalerX, scalerY, chosen_season, id_to_team, stats, rounds=0, dic=d)
 		level += 1
@@ -131,7 +131,6 @@ if __name__ == "__main__":
 	for pw in playin_winners:
 		playin_seed = pw[:-1]
 		seed_to_team_id[playin_seed] = seed_to_team_id[pw]
-
 
 	print 'Greedy Bracket'
 	tournament = greedy_predict(seeds, nn, scalerX, scalerY, chosen_season, id_to_team, stats, rounds=0, verbose=False)
