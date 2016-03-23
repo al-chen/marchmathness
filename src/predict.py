@@ -72,4 +72,4 @@ if __name__ == "__main__":
 	scalerYObject = open(nn_filename + '_scalerY','r')
 	scalerY = pickle.load(scalerYObject)
 
-	predict_submission(nn, scalerX, scalerY, readable_output='../readable_submission.csv', kaggle_output='../my_submission.csv')
+	predict_submission(nn, scalerX, scalerY, readable_output='../readable_output.csv', kaggle_output='../my_submission.csv')
