@@ -4,23 +4,38 @@ import predict
 import pickle
 
 class Bracket(object):
-	def __init__(self, nn, scalerX, scalerY, id_to_team, stats):
+	def __init__(self, nn, scalerX, scalerY, id_to_team, stats, season=0):
 		self.nn = nn
 		self.scalerX = scalerX
 		self.scalerY = scalerY
 		self.id_to_team = id_to_team
 		self.stats = stats
 
-		self.seed_to_team_id = None
-		self.chosen_season = 2016
+		if season == 0:
+			self.chosen_season = 2016
+		else:
+			self.chosen_season = season
+
+		self.seed_to_team_id = {}
+		self.set_season(self.chosen_season)
 
 	def set_season(self, chosen_season):
 		self.chosen_season = chosen_season
 
+		self.seed_to_team_id.clear()
+		with open('../march-machine-learning-mania-2016-v2/TourneySeeds.csv') as csvfile:
+			reader = csv.reader(csvfile)
+			headers = next(reader)
+			for row in reader:
+				season, seed, team = row
+				if int(season) != self.chosen_season:
+					continue
+				self.seed_to_team_id[seed] = team
+
 	def set_playin_winners(self, playin_winners):
 		for pw in playin_winners:
 			playin_seed = pw[:-1]
-			self.seed_to_team_id[playin_seed] = seed_to_team_id[pw]
+			self.seed_to_team_id[playin_seed] = self.seed_to_team_id[pw]
 
 	def get_playin_seeds(self):
 		assert self.seed_to_team_id is not None
@@ -87,6 +102,7 @@ class Bracket(object):
 			return seeds_done, points, dic
 
 		seed1, seed2 = seeds_todo[0], seeds_todo[1]
+
 		if (seed1, seed2) in dic:
 			t1_prob = dic[(seed1, seed2)]
 			t2_prob = 1.0 - t1_prob
@@ -101,8 +117,8 @@ class Bracket(object):
 			dic[(seed1,seed2)] = t1_prob
 			dic[(seed2,seed1)] = t2_prob
 
-		seeds_todo.pop(0)
-		seeds_todo.pop(0)
+		seeds_todo.remove(seed1)
+		seeds_todo.remove(seed2)
 
 		correct_pts = 10.0 * pow(2,level-1)
 		if t1_prob >= cutoff:
@@ -135,10 +151,10 @@ if __name__ == "__main__":
 	with open('../data/id_to_team.json') as f:
 		id_to_team = json.load(f)
 
-	with open('../data/stats.json') as f:
+	with open('../data/stats_advanced.json') as f:
 		stats = json.load(f)
 
-	nn_filename = '../data/saved_nn'
+	nn_filename = '../data/advanced_nn_100epochs'
 	nnObject = open(nn_filename,'r')
 	nn = pickle.load(nnObject)
 
@@ -153,32 +169,15 @@ if __name__ == "__main__":
 			 'Y01', 'Y16', 'Y08', 'Y09', 'Y05', 'Y12', 'Y04', 'Y13', 'Y06', 'Y11', 'Y03', 'Y14', 'Y07', 'Y10', 'Y02', 'Y15', 
 			 'Z01', 'Z16', 'Z08', 'Z09', 'Z05', 'Z12', 'Z04', 'Z13', 'Z06', 'Z11', 'Z03', 'Z14', 'Z07', 'Z10', 'Z02', 'Z15']
 
-	chosen_season = 2016
-	seed_to_team_id = {}
-	with open('../march-machine-learning-mania-2016-v2/TourneySeeds.csv') as csvfile:
-		reader = csv.reader(csvfile)
-		headers = next(reader)
-		for row in reader:
-			season, seed, team = row
-			if int(season) != chosen_season:
-				continue
-			seed_to_team_id[seed] = team
-
-	b = Bracket(nn, scalerX, scalerY, id_to_team, stats)
-	b.set_seed_to_team_id(seed_to_team_id)
-	b.set_season(chosen_season)
+	b = Bracket(nn, scalerX, scalerY, id_to_team, stats, season=2016)
 	b.simulate_playins(verbose=False)
-
 	
-	greedy_tourney = b.greedy_predict(seeds, rounds=0, verbose=False)
-	print 'greedy predictions'
-	for t in greedy_tourney:
-		print b.seeds_to_bracket(t)
-
+	# greedy_tourney = b.greedy_predict(seeds[:], rounds=0, verbose=False)
+	# print 'greedy predictions'
+	# for t in greedy_tourney:
+	# 	print b.seeds_to_bracket(t)
 	
-	value_tourney = b.value_predict(seeds, cutoff=0.9)
+	value_tourney = b.value_predict(seeds[:], cutoff=0.8)
 	print 'value predictions'
 	for t in value_tourney:
 		print b.seeds_to_bracket(t)
-
-	print greedy_tourney == value_tourney
