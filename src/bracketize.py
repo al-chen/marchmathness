@@ -97,7 +97,7 @@ class Bracket(object):
 			history.append(seeds[:])
 		return history
 
-	def dynamic_ev(self, seeds_done, seeds_todo, points, level, dic, cutoff=0.9):
+	def memoized_ev(self, seeds_done, seeds_todo, points, level, dic, cutoff):
 		if len(seeds_todo) <= 1:
 			return seeds_done, points, dic
 
@@ -122,14 +122,14 @@ class Bracket(object):
 
 		correct_pts = 10.0 * pow(2,level-1)
 		if t1_prob >= cutoff:
-			sd1, p1, dic = self.dynamic_ev(seeds_done + [seed1], seeds_todo[:], points + correct_pts*t1_prob, level, dic, cutoff)
+			sd1, p1, dic = self.memoized_ev(seeds_done + [seed1], seeds_todo[:], points + correct_pts*t1_prob, level, dic, cutoff)
 			sd2, p2, dic = [], 0, dic
 		elif t2_prob >= cutoff:
 			sd1, p1, dic = [], 0, dic
-			sd2, p2, dic = self.dynamic_ev(seeds_done + [seed2], seeds_todo[:], points + correct_pts*t2_prob, level, dic)
+			sd2, p2, dic = self.memoized_ev(seeds_done + [seed2], seeds_todo[:], points + correct_pts*t2_prob, level, dic)
 		else:
-			sd1, p1, dic = self.dynamic_ev(seeds_done + [seed1], seeds_todo[:], points + correct_pts*t1_prob, level, dic, cutoff)
-			sd2, p2, dic = self.dynamic_ev(seeds_done + [seed2], seeds_todo[:], points + correct_pts*t2_prob, level, dic, cutoff)
+			sd1, p1, dic = self.memoized_ev(seeds_done + [seed1], seeds_todo[:], points + correct_pts*t1_prob, level, dic, cutoff)
+			sd2, p2, dic = self.memoized_ev(seeds_done + [seed2], seeds_todo[:], points + correct_pts*t2_prob, level, dic, cutoff)
 
 		if p1 >= p2:
 			return sd1, p1, dic
@@ -142,7 +142,7 @@ class Bracket(object):
 		level = 1
 		history = [seeds[:]]
 		while len(sd) > 1:
-			sd, p, d = self.dynamic_ev([], sd, p, level, d, cutoff)
+			sd, p, d = self.memoized_ev([], sd, p, level, d, cutoff)
 			level += 1
 			history.append(sd[:])
 		return history
@@ -172,10 +172,10 @@ if __name__ == "__main__":
 	b = Bracket(nn, scalerX, scalerY, id_to_team, stats, season=2016)
 	b.simulate_playins(verbose=False)
 	
-	# greedy_tourney = b.greedy_predict(seeds[:], rounds=0, verbose=False)
-	# print 'greedy predictions'
-	# for t in greedy_tourney:
-	# 	print b.seeds_to_bracket(t)
+	greedy_tourney = b.greedy_predict(seeds[:], rounds=0, verbose=False)
+	print 'greedy predictions'
+	for t in greedy_tourney:
+		print b.seeds_to_bracket(t)
 	
 	value_tourney = b.value_predict(seeds[:], cutoff=0.8)
 	print 'value predictions'
