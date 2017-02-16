@@ -1,7 +1,10 @@
 import csv
 import json
+import datetime
+import kenpom_scraper
+import os.path
 
-def get_kenpom_stats(f='../data/kenpom.csv'):
+def get_kenpom_stats(f):
 	stats = {}
 	with open(f) as csvfile:
 		reader = csv.DictReader(csvfile)
@@ -83,14 +86,20 @@ def add_advanced_stats(stats, id_to_team):
 			# 	print team, year
 
 if __name__ == "__main__":
-	stats = get_kenpom_stats('../data/kenpom.csv')
+	now = datetime.datetime.now()
+	kp_filename = '../data_' + str(now.year) + '/kenpom_' + now.strftime("%Y-%m-%d") + '.csv'
+	if not os.path.isfile(kp_filename):
+		kenpom_scraper.scrape(kp_filename)
+	stats = get_kenpom_stats(kp_filename)
 	teams = set(stats.keys())
-	spelling_to_id = check_spelling(teams)
-	id_to_team = get_id_to_team_mappings(teams, spelling_to_id)
+	print teams
+	print len(stats), len(teams)
+	# spelling_to_id = check_spelling(teams)
+	# id_to_team = get_id_to_team_mappings(teams, spelling_to_id)
 
-	add_advanced_stats(stats, id_to_team)
+	# add_advanced_stats(stats, id_to_team)
 
-	with open('../data/id_to_team.json', 'w') as f:
-		json.dump(id_to_team, f)
-	with open('../data/stats_advanced.json', 'w') as f:
-		json.dump(stats, f)
+	# with open('../data/id_to_team.json', 'w') as f:
+	# 	json.dump(id_to_team, f)
+	# with open('../data/stats_advanced.json', 'w') as f:
+	# 	json.dump(stats, f)
