@@ -16,7 +16,13 @@ def get_kenpom_stats(f):
 			stats[team][year] = row
 	return stats
 
-def check_spelling(teams, spellings_file='../data/TeamSpellings.csv'):
+
+def check_spelling(teams, spellings_file):
+	"""
+	Run this to check if there are any new spellings for teams on Ken Pom's website that aren't in TeamSpellings.csv
+	If there are, then the AssertionError will be raised and print the spellings.
+	Currently, the solution if this happens is to hardcode those spellings, along with correct team_id, into TeamSpellings.csv
+	"""
 	spelling_to_id = {}
 	with open(spellings_file) as csvfile:
 		reader = csv.reader(csvfile)
@@ -92,9 +98,7 @@ if __name__ == "__main__":
 		kenpom_scraper.scrape(kp_filename)
 	stats = get_kenpom_stats(kp_filename)
 	teams = set(stats.keys())
-	print teams
-	print len(stats), len(teams)
-	# spelling_to_id = check_spelling(teams)
+	spelling_to_id = check_spelling(teams, '../TeamSpellings.csv')
 	# id_to_team = get_id_to_team_mappings(teams, spelling_to_id)
 
 	# add_advanced_stats(stats, id_to_team)
