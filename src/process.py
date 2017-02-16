@@ -99,11 +99,14 @@ if __name__ == "__main__":
 	stats = get_kenpom_stats(kp_filename)
 	teams = set(stats.keys())
 	spelling_to_id = check_spelling(teams, '../TeamSpellings.csv')
-	# id_to_team = get_id_to_team_mappings(teams, spelling_to_id)
+	id_to_team = get_id_to_team_mappings(teams, spelling_to_id)
+	with open('../data_' + str(now.year) + '/id_to_team.json', 'w') as f:
+		json.dump(id_to_team, f)
+
+	with open('../data_' + str(now.year) + '/stats.json', 'w') as f:
+		json.dump(stats, f)
+
 
 	# add_advanced_stats(stats, id_to_team)
-
-	# with open('../data/id_to_team.json', 'w') as f:
-	# 	json.dump(id_to_team, f)
-	# with open('../data/stats_advanced.json', 'w') as f:
+	# with open('../data_2017/stats_advanced.json', 'w') as f:
 	# 	json.dump(stats, f)
