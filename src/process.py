@@ -41,10 +41,9 @@ def get_id_to_team_mappings(teams, spelling_to_id):
 	id_to_team = {v: k for k, v in team_to_id.items()}
 	return id_to_team
 
-def add_advanced_stats(stats, id_to_team):
+def add_advanced_stats(stats, id_to_team, results):
 	stat_names = ['fgm', 'fga', 'fgm3', 'fga3', 'ftm', 'fta', 'oreb', 'dr', 'ast', 'to', 'stl', 'blk', 'pf',
 				  'opp_fgm', 'opp_fga', 'opp_fgm3', 'opp_fga3', 'opp_ftm', 'opp_fta', 'opp_oreb', 'opp_dr', 'opp_ast', 'opp_to', 'opp_stl', 'opp_blk', 'opp_pf']
-	results = ['../march-machine-learning-mania-2016-v2/TourneyDetailedResults.csv', '../march-machine-learning-mania-2016-v2/RegularSeasonDetailedResults.csv']
 	for f in results:
 		with open(f) as csvfile:
 			reader = csv.reader(csvfile)
@@ -92,10 +91,13 @@ def add_advanced_stats(stats, id_to_team):
 			# 	print team, year
 
 if __name__ == "__main__":
+	# Update kenpom stats
 	now = datetime.datetime.now()
 	kp_filename = '../data_' + str(now.year) + '/kenpom_' + now.strftime("%Y-%m-%d") + '.csv'
 	if not os.path.isfile(kp_filename):
 		kenpom_scraper.scrape(kp_filename)
+
+	# Update id_to_team mappings and stats for training
 	stats = get_kenpom_stats(kp_filename)
 	teams = set(stats.keys())
 	spelling_to_id = check_spelling(teams, '../TeamSpellings.csv')
@@ -106,7 +108,7 @@ if __name__ == "__main__":
 	with open('../data_' + str(now.year) + '/stats.json', 'w') as f:
 		json.dump(stats, f)
 
-
-	# add_advanced_stats(stats, id_to_team)
-	# with open('../data_2017/stats_advanced.json', 'w') as f:
-	# 	json.dump(stats, f)
+	results = ['../march-machine-learning-mania-2017/TourneyDetailedResults.csv', '../march-machine-learning-mania-2017/RegularSeasonDetailedResults.csv']
+	add_advanced_stats(stats, id_to_team, results)
+	with open('../data_2017/stats_advanced.json', 'w') as f:
+		json.dump(stats, f)
