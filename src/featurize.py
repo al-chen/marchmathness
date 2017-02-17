@@ -5,7 +5,7 @@ import json
 def get_team_features(team_id, season, id_to_team, stats):
 	assert str(team_id) in id_to_team
 	team = id_to_team[str(team_id)]
-	# Hardcoded: Changed Middle Tenneessee St. to Middle Tennessee in kenpom.csv
+	# Hardcoded: Change Middle Tenneessee St. to Middle Tennessee in kenpom.csv
 	if team not in stats or str(season) not in stats[team]:
 		return None
 	team_stats = stats[team][str(season)]
@@ -79,10 +79,10 @@ def get_matchup_features(season, t1_id, t2_id, t1_loc, id_to_team, stats):
 	x2 = t2_features + t1_features + t2_first
 	return x1, x2
 
-def get_training_data(year_range, id_to_team, stats):
+def get_training_data(year_range, id_to_team, stats, results):
 	x = []
 	y = []
-	results = ['../march-machine-learning-mania-2016-v2/TourneyCompactResults.csv', '../march-machine-learning-mania-2016-v2/RegularSeasonCompactResults.csv']
+	# results = ['../march-machine-learning-mania-2016-v2/TourneyCompactResults.csv', '../march-machine-learning-mania-2016-v2/RegularSeasonCompactResults.csv']
 	for f in results:
 		with open(f) as csvfile:
 			reader = csv.reader(csvfile)
