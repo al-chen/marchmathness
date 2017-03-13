@@ -19,6 +19,7 @@ class MMNN(): # March Madness Neural Network
 		self.maxEpochs = 1
 		self.verbose = True
 		self.hidden_size = 0
+		self.mov_label = True
 
 	def load_ids(self, filename):
 		with open(filename) as f:
@@ -43,11 +44,12 @@ class MMNN(): # March Madness Neural Network
 		self.scalerX = preprocessing.StandardScaler().fit(self.data)
 		self.processed_data = self.scalerX.transform(self.data)
 
-		# self.scalerY = None
-		# self.processed_labels = self.labels
-
-		self.scalerY = preprocessing.MinMaxScaler().fit(self.labels)
-		self.processed_labels = self.scalerY.transform(self.labels)
+		if self.mov_label:
+			self.scalerY = preprocessing.MinMaxScaler().fit(self.labels)
+			self.processed_labels = self.scalerY.transform(self.labels)
+		else:
+			self.scalerY = None
+			self.processed_labels = self.labels
 
 	def test(self):
 		x, y = shuffle(self.processed_data, self.processed_labels, random_state=42)
@@ -100,9 +102,11 @@ if __name__ == "__main__":
 
 	mn.load_ids('../data_2017/id_to_team.json')
 	mn.load_stats('../data_2017/stats_advanced.json')
-	mn.set_year_range(range(2002,2013))
+	mn.set_year_range(range(2002,2018))
 	mn.set_results(['../march-machine-learning-mania-2017/TourneyDetailedResults.csv', '../march-machine-learning-mania-2017/RegularSeasonDetailedResults.csv'])
 	mn.maxEpochs = 10
+	mn.mov_label = True
+	
 	print 'Getting data...'
 	mn.get_data()
 	print 'Preprocessing...'
