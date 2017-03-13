@@ -80,7 +80,7 @@ def get_matchup_features(season, t1_id, t2_id, t1_loc, id_to_team, stats):
 	x2 = t2_features + t1_features + t2_first
 	return x1, x2
 
-def get_training_data(year_range, id_to_team, stats, results):
+def get_training_data(year_range, id_to_team, stats, results, mov_label=True):
 	x = []
 	y = []
 	for f in results:
@@ -104,17 +104,13 @@ def get_training_data(year_range, id_to_team, stats, results):
 				x.append(x1)
 				x.append(x2)
 
-				# margin of victory output
-				# norm_mov = (mov+20.0) / 40.0
-				# norm_mov = norm_mov if norm_mov <= 1.0 else 1.0
-				# y.append(norm_mov)
-				# y.append(-norm_mov)
-
-				y.append(mov)
-				y.append(-mov)
-
-				# win/loss
-				# y.append(1)
-				# y.append(0)
+				if mov_label:
+					# margin of victory output
+					y.append(mov)
+					y.append(-mov)
+				else:
+					# win/loss
+					y.append(1)
+					y.append(0)
 
 	return np.array(x).astype(float), np.array(y).astype(float).reshape((len(y), 1))
