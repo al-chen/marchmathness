@@ -6,6 +6,7 @@ def get_team_features(team_id, season, id_to_team, stats):
 	assert str(team_id) in id_to_team
 	team = id_to_team[str(team_id)]
 	# Hardcoded: Change Middle Tenneessee St. to Middle Tennessee in kenpom.csv
+	# Change Little Rock to Arkansas Little Rock
 	if team not in stats or str(season) not in stats[team]:
 		return None
 	team_stats = stats[team][str(season)]
@@ -82,7 +83,6 @@ def get_matchup_features(season, t1_id, t2_id, t1_loc, id_to_team, stats):
 def get_training_data(year_range, id_to_team, stats, results):
 	x = []
 	y = []
-	# results = ['../march-machine-learning-mania-2016-v2/TourneyCompactResults.csv', '../march-machine-learning-mania-2016-v2/RegularSeasonCompactResults.csv']
 	for f in results:
 		with open(f) as csvfile:
 			reader = csv.reader(csvfile)
@@ -110,8 +110,11 @@ def get_training_data(year_range, id_to_team, stats, results):
 				# y.append(norm_mov)
 				# y.append(-norm_mov)
 
+				y.append(mov)
+				y.append(-mov)
+
 				# win/loss
-				y.append(1)
-				y.append(0)
+				# y.append(1)
+				# y.append(0)
 
 	return np.array(x).astype(float), np.array(y).astype(float).reshape((len(y), 1))
