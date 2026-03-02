@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Kaggle competition data (100-270MB each, download from Kaggle)
+*/march-machine-learning-mania-*/
+
+# Large generated submissions (150-300MB each, reproducible from notebooks)
+*submission*.csv
+
+# Model artifacts (reproducible)
+*.h5
+*.keras
+*.pkl
+*.pickle
