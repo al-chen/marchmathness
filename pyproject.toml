@@ -1,0 +1,13 @@
+[project]
+name = "marchmathness"
+version = "0.1.0"
+description = "A model that predicts win probabilities between any two college basketball teams."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "bs4>=0.0.2",
+    "numpy>=2.4.2",
+    "pandas>=3.0.1",
+    "scikit-learn>=1.8.0",
+    "tqdm>=4.67.3",
+]
