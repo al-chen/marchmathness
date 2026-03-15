@@ -51,11 +51,19 @@ Each year directory also contains a `march-machine-learning-mania-YYYY/` folder 
 4. Refresh KenPom data in `kenpom/`
 5. Run the notebook and export predictions
 
-### Dependencies
+### Setup
 
-- tensorflow
-- pandas
-- numpy
-- scikit-learn
-- beautifulsoup4
-- tqdm
+This project uses [uv](https://docs.astral.sh/uv/) for dependency management. uv manages Python versions, virtual environments, and package installs via `pyproject.toml` / `uv.lock`.
+
+```bash
+# Install dependencies and create the virtual environment
+uv sync
+
+# Add a new dependency
+uv add <package>
+
+# Launch Jupyter Lab (installs it in an isolated environment if needed)
+uv run --with jupyter jupyter lab
+```
+
+`uv sync` reads `pyproject.toml`, resolves dependencies against `uv.lock`, and installs everything into a local `.venv`. You don't need to activate the venv manually — `uv run` handles it.
