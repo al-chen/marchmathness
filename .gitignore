@@ -20,3 +20,6 @@ __pycache__/
 *.keras
 *.pkl
 *.pickle
+
+# Claude Code
+CLAUDE.md
